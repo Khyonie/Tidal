@@ -1,5 +1,6 @@
 package coffee.khyonieheart.tidal.structure.branch;
 
+import java.lang.annotation.Annotation;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -11,6 +12,7 @@ import java.util.Objects;
 
 import org.bukkit.command.CommandSender;
 
+import coffee.khyonieheart.hyacinth.Logger;
 import coffee.khyonieheart.hyacinth.util.marker.NotNull;
 import coffee.khyonieheart.hyacinth.util.marker.Nullable;
 import coffee.khyonieheart.tidal.structure.BranchType;
@@ -23,6 +25,7 @@ public abstract class Branch
 	private Class<? extends CommandSender> senderType;
 	private String[] permissions;
 	private Method executor;
+	private Map<Class<? extends Annotation>, Annotation> annotations;
 
 	public Branch(
 		@Nullable String label, 
@@ -46,6 +49,7 @@ public abstract class Branch
 
 		for (String permission : permissions)
 		{
+			Logger.debug("Testing permission \"" + permission + "\":" + sender.hasPermission(permission));
 			if (!sender.hasPermission(permission))
 			{
 				return false;
@@ -53,6 +57,44 @@ public abstract class Branch
 		}
 
 		return true;
+	}
+
+	public void addPermission(
+		@NotNull String permission
+	) {
+		Objects.requireNonNull(permission);
+		this.permissions = new String[] { permission };
+	}
+
+	public void addSenderType(
+		@NotNull Class<? extends CommandSender> type	 
+	) {
+		this.senderType = Objects.requireNonNull(type);
+	}
+
+	public void addAnnotations(
+		@NotNull Annotation[] annotations
+	) {
+		for (Annotation a : annotations)
+		{
+			this.annotations.put(a.annotationType(), a);
+		}
+	}
+
+	@Nullable
+	@SuppressWarnings("unchecked")
+	public <T extends Annotation> T getAnnotation(
+		@NotNull Class<? extends Annotation> annotation
+	) {
+		Objects.requireNonNull(annotation);
+		return (T) this.annotations.get(annotation);
+	} 
+
+	public boolean hasAnnotation(
+		@NotNull Class<? extends Annotation> annotation
+	) {
+		Objects.requireNonNull(annotation);
+		return this.annotations.containsKey(annotation);
 	}
 
 	public void attach(

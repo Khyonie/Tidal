@@ -1,6 +1,7 @@
 package coffee.khyonieheart.tidal;
 
 import java.lang.constant.Constable;
+import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.lang.reflect.Parameter;
 import java.util.ArrayList;
@@ -19,6 +20,7 @@ import coffee.khyonieheart.hyacinth.killswitch.Feature;
 import coffee.khyonieheart.hyacinth.killswitch.FeatureIdentifier;
 import coffee.khyonieheart.hyacinth.module.ModuleOwned;
 import coffee.khyonieheart.hyacinth.module.marker.PreventAutoLoad;
+import coffee.khyonieheart.hyacinth.util.Collections;
 import coffee.khyonieheart.tidal.concatenation.Concatenate;
 import coffee.khyonieheart.tidal.concatenation.ConcatenationException;
 import coffee.khyonieheart.tidal.error.CommandError;
@@ -80,7 +82,7 @@ public abstract class TidalCommand extends Command implements ModuleOwned, Featu
 				continue;
 			}
 
-			if (CommandSender.class.isAssignableFrom(method.getParameterTypes()[0]))
+			if (!CommandSender.class.isAssignableFrom(method.getParameterTypes()[0]))
 			{
 				continue;
 			}
@@ -91,7 +93,7 @@ public abstract class TidalCommand extends Command implements ModuleOwned, Featu
 			Root rootData = method.getAnnotation(Root.class);
 			if (rootData.isLocalExecutor())
 			{
-				localCommandBranchExecutor = convertToBranches(method.getParameters(), method);
+				localCommandBranchExecutor = convertToBranches(method.getParameters(), "", rootData, method);
 				break;
 			}
 
@@ -111,7 +113,7 @@ public abstract class TidalCommand extends Command implements ModuleOwned, Featu
 
 			List<Branch> branches;
 			try {
-				branches = convertToBranches(method.getParameters(), method);
+				branches = convertToBranches(method.getParameters(), rootName, rootData, method);
 			} catch (IllegalStateException e) {
 				Logger.log("§cFailed to setup command using method \"" + method.getName() + "\" in class \"" + this.getClass().getName() + "\" (" + e.getMessage() + ")");
 				continue;
@@ -147,18 +149,29 @@ public abstract class TidalCommand extends Command implements ModuleOwned, Featu
 
 			roots.put(rootName, branches);
 		}
+
+		Logger.debug("Final roots: " + Collections.toString(this.roots.keySet(), ", "));
 	}
 
 	@SuppressWarnings("unchecked")
 	private static List<Branch> convertToBranches(
 		Parameter[] params,
+		String rootName,
+		Root rootData,
 		Method method
 	)
 		throws IllegalStateException
 	{
 		List<Branch> branches = new ArrayList<>();
 
-		Branch previousBranch = null;
+		Branch previousBranch = new StaticBranch(rootName, null);
+		if (!rootData.permission().equals("NOT_APPLICABLE"))
+		{
+			previousBranch.addPermission(rootData.permission());
+		}
+		previousBranch.addSenderType((Class<? extends CommandSender>) method.getParameterTypes()[0]);
+		branches.add(previousBranch);
+
 		for (int i = 1; i < params.length; i++)
 		{
 			Parameter param = params[i];
@@ -167,10 +180,9 @@ public abstract class TidalCommand extends Command implements ModuleOwned, Featu
 			if (param.isAnnotationPresent(Static.class))
 			{
 				branch = new StaticBranch(param.getAnnotation(Static.class).value(), param.isAnnotationPresent(Protected.class) ? param.getAnnotation(Protected.class) : null);
-				if (previousBranch != null)
-				{
-					previousBranch.attach(branch);
-				}
+				branch.addAnnotations(param.getAnnotations());
+				branches.add(branch);
+				previousBranch.attach(branch);
 				previousBranch = branch;
 
 				continue;
@@ -189,20 +201,18 @@ public abstract class TidalCommand extends Command implements ModuleOwned, Featu
 				}
 
 				branch = new ArrayBranch<>(param.getName(), param.getType().getComponentType(), param.isAnnotationPresent(Protected.class) ? param.getAnnotation(Protected.class) : null, param.isAnnotationPresent(ArgCount.class) ? param.getAnnotation(ArgCount.class) : null, param.isVarArgs());
-				if (previousBranch != null)
-				{
-					previousBranch.attach(branch);
-				}
+				branch.addAnnotations(param.getAnnotations());
+				branches.add(branch);
+				previousBranch.attach(branch);
 				previousBranch = branch;
 
 				continue;
 			}
 
 			branch = new TypedBranch<>(param.getName(), param.getType(), param.isAnnotationPresent(Protected.class) ? param.getAnnotation(Protected.class) : null);
-			if (previousBranch != null)
-			{
-				previousBranch.attach(branch);
-			}
+			branch.addAnnotations(param.getAnnotations());
+			branches.add(branch);
+			previousBranch.attach(branch);
 			previousBranch = branch;
 		}
 
@@ -268,26 +278,30 @@ public abstract class TidalCommand extends Command implements ModuleOwned, Featu
 		try {
 			args = Concatenate.concatenate('"', ' ', args);
 		} catch (ConcatenationException e) {
-			// FIXME Red New error infrastructure
 			CommandError error = switch (e.getType())
 			{
-				case UNEXPECTED_END -> null;
-				case UNEXPECTED_START -> null;
-				case UNTERMINATED_END -> null;
+				case UNEXPECTED_END -> new CommandError("Unexpected quoted argument end", e.getIndex(), false);
+				case UNEXPECTED_START -> new CommandError("Unexpected quoted argument start", e.getIndex(), false);
+				case UNTERMINATED_END -> new CommandError("Unterminated quoted argument", e.getIndex(), false);
 			};
+
+			error.display(1, sender, commandLabel, args);
+			return true;
 		};
 
 		// Array processing
 		try {
 			args = Concatenate.concatenate('(', ')', '\u0000', args);
 		} catch (ConcatenationException e) {
-			// FIXME Red New error infrastructure
 			CommandError error = switch (e.getType())
 			{
-				case UNEXPECTED_END -> null;
-				case UNEXPECTED_START -> null;
-				case UNTERMINATED_END -> null;
+				case UNEXPECTED_END -> new CommandError("Unexpected array argument end", e.getIndex(), false);
+				case UNEXPECTED_START -> new CommandError("Unexpected array argument start", e.getIndex(), false);
+				case UNTERMINATED_END -> new CommandError("Unterminated array argument", e.getIndex(), false);
 			};
+
+			error.display(1, sender, commandLabel, args);
+			return true;
 		};
 
 		List<CommandError> errors = new ArrayList<>();
@@ -299,19 +313,105 @@ public abstract class TidalCommand extends Command implements ModuleOwned, Featu
 			Branch branch = this.localCommandBranchExecutor.get(0);
 			Object[] methodParameters = new Object[this.localCommandBranchExecutor.size()];
 
-			traverse(branch, args, 0, sender, commandLabel, CommandContext.EXECUTION, methodParameters, errors);
+			branch = traverse(branch, args, 0, sender, commandLabel, CommandContext.EXECUTION, methodParameters, errors);
 
 			if (!errors.isEmpty())
 			{
-				// FIXME Red Display errors
+				for (int i = 0; i < errors.size(); i++)
+				{
+					errors.get(i).display(i + 1, sender, commandLabel, args);
+				}
 				return true;
 			}
+
+			if (branch.getExecutor() == null)
+			{
+				if (!branch.isLeaf())
+				{
+					errors.add(new CommandError("Incomplete command", args.length, true));
+					for (int i = 0; i < errors.size(); i++)
+					{
+						errors.get(i).display(i + 1, sender, commandLabel, args);
+					}
+
+					return true;
+				}
+
+				errors.add(new CommandError("§d§oUnterminated command, this is a Tidal issue§c", args.length - 1, false));
+				for (int i = 0; i < errors.size(); i++)
+				{
+					errors.get(i).display(i + 1, sender, commandLabel, args);
+				}
+
+				return true;
+			}
+
+			try {
+				branch.getExecutor().setAccessible(true);
+				branch.getExecutor().invoke(this, methodParameters);
+			} catch (IllegalAccessException | IllegalArgumentException | InvocationTargetException e) {
+				Message.send(sender, "§cAn exception occurred when attempting to invoke this command.");
+				e.printStackTrace();
+			}
+
+			return true;
+		}
+
+		// Subcommand executor
+		//-------------------------------------------------------------------------------- 
+		if (!this.roots.containsKey(args[0]))
+		{
+			new CommandError("Unknown subcommand \"" + args[0] + "\"", 0, false).display(1, sender, commandLabel, args);
+			return true;
+		}
+
+		Branch branch = this.roots.get(args[0]).get(0);
+
+		if (!branch.isAuthorized(sender))
+		{
+			Logger.debug("Authorization failed");
+			new CommandError("Unknown subcommand \"" + args[0] + "\"", 0, false).display(1, sender, commandLabel, args);
+			return true;
+		}
+
+		Object[] methodParameters = new Object[this.roots.get(args[0]).size()];
+
+		branch = traverse(branch, args, 1, sender, commandLabel, CommandContext.EXECUTION, methodParameters, errors);
+
+		if (branch.getExecutor() == null)
+		{
+			if (!branch.isLeaf())
+			{
+				errors.add(new CommandError("Incomplete command", args.length, true));
+				for (int i = 0; i < errors.size(); i++)
+				{
+					errors.get(i).display(i + 1, sender, commandLabel, args);
+				}
+
+				return true;
+			}
+
+			errors.add(new CommandError("§d§oUnterminated command, this is a Tidal issue§c", args.length - 1, false));
+			for (int i = 0; i < errors.size(); i++)
+			{
+				errors.get(i).display(i + 1, sender, commandLabel, args);
+			}
+
+			return true;
+		}
+
+		try {
+			branch.getExecutor().setAccessible(true);
+			branch.getExecutor().invoke(this, methodParameters);
+		} catch (IllegalAccessException | IllegalArgumentException | InvocationTargetException e) {
+			Message.send(sender, "§cAn exception occurred when attempting to invoke this command.");
+			e.printStackTrace();
 		}
 
 		return true;
 	}
 
-	private void traverse(
+	private Branch traverse(
 		Branch root,
 		String[] args,
 		int startIndex,
@@ -331,7 +431,7 @@ public abstract class TidalCommand extends Command implements ModuleOwned, Featu
 		{
 			if (args.length >= index)
 			{
-				return;
+				return branch;
 			}
 
 			arg = args[index];
@@ -344,20 +444,38 @@ public abstract class TidalCommand extends Command implements ModuleOwned, Featu
 
 					if (!branch.hasStaticBranch(arg))
 					{
-						// FIXME Red Add unknown static branch error
+						errors.add(new CommandError("Unknown option \"" + arg + "\"", index - 1, false));
 						if (branch.getBranchesCount() == 1)
 						{
 							branch = branch.getVariableBranch(); // Skip ahead
+							
+							if (!branch.isAuthorized(sender))
+							{
+								return branch;
+							}
+
 							continue;
 						}
 
-						return;
+						return branch;
 					}
 
 					branch = branch.getStaticBranch(arg);
+					if (!branch.isAuthorized(sender))
+					{
+						errors.add(new CommandError("Unknown option \"" + arg + "\"", index - 1, false));
+						return branch;
+					}
 				}
 				case TYPED -> {
 					branch = branch.getVariableBranch();
+					
+					if (!branch.isAuthorized(sender))
+					{
+						errors.add(new CommandError("You do not have permission to use this command", index, false));
+						return branch;
+					}
+
 					index++;
 					parameterIndex++;
 
@@ -365,6 +483,13 @@ public abstract class TidalCommand extends Command implements ModuleOwned, Featu
 				}
 				case ARRAY -> {
 					branch = branch.getVariableBranch();
+
+					if (!branch.isAuthorized(sender))
+					{
+						errors.add(new CommandError("You do not have permission to use this command", index, false));
+						return branch;
+					}
+					
 					index++;
 					parameterIndex++;
 
@@ -374,6 +499,17 @@ public abstract class TidalCommand extends Command implements ModuleOwned, Featu
 				}
 			}
 		}
+		return branch;
+	}
+
+	@Override
+	public List<String> onTabComplete(
+		CommandSender sender,
+		Command command,
+		String label,
+		String[] args
+	) {
+		return super.tabComplete(sender, label, args);
 	}
 
 	// Feature logic

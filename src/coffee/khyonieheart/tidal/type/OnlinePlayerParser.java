@@ -9,7 +9,7 @@ import org.bukkit.entity.Player;
 import coffee.khyonieheart.hyacinth.util.Lists;
 import coffee.khyonieheart.tidal.TypeParser;
 import coffee.khyonieheart.tidal.error.CommandError;
-import coffee.khyonieheart.tidal.structure.Branch;
+import coffee.khyonieheart.tidal.structure.branch.Branch;
 
 public class OnlinePlayerParser extends TypeParser<Player>
 {
@@ -32,8 +32,7 @@ public class OnlinePlayerParser extends TypeParser<Player>
 			return null;
 		}
 
-		CommandError error = new CommandError("No player named \"" + argument + "\" is online", argument, index, 0, argument.length());
-		// TODO Fuzzy search
+		CommandError error = new CommandError("No player named \"" + argument + "\" is online", index, false);
 		
 		return error;
 	}
@@ -52,7 +51,7 @@ public class OnlinePlayerParser extends TypeParser<Player>
 			return null;
 		}
 
-		CommandError error = new CommandError("No player named \"" + argument + "\" is online", argument, index, 0, argument.length());
+		CommandError error = new CommandError("No player named \"" + argument + "\" is online", index, false);
 		
 		return error;
 	}

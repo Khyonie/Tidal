@@ -5,6 +5,7 @@ import java.util.List;
 
 import org.bukkit.command.CommandSender;
 
+import coffee.khyonieheart.hyacinth.Message;
 import coffee.khyonieheart.tidal.ArgCount;
 import coffee.khyonieheart.tidal.CommandContext;
 import coffee.khyonieheart.tidal.TypeManager;
@@ -18,7 +19,7 @@ public class ArrayBranch<T> extends Branch
 	private final Class<T> component;
 	private final boolean isVarArgs;
 	private int minArgs = 0;
-	private int maxArgs = 0;
+	private int maxArgs = Integer.MAX_VALUE;
 
 	public ArrayBranch(
 		String label,
@@ -61,19 +62,25 @@ public class ArrayBranch<T> extends Branch
 		T[] data = (T[]) Array.newInstance(component, args.length);
 		if (!TypeManager.hasParserFor(component))
 		{
-			// TODO New command error infrastructure
+			errors.add(new CommandError("§dNo parser exists for type " + this.getComponentType().getName() + "§c", index, false));
 			return data;
 		}
 
 		if (args.length < minArgs)
 		{
-			// TODO New command error infrastructure
+			if (maxArgs == Integer.MAX_VALUE)
+			{
+				errors.add(new CommandError("Branch \"" + this.getLabel() + " expect at least " + this.minArgs + " argument(s), received " + args.length, index, false));
+				return data;
+			}
+
+			errors.add(new CommandError("Branch \"" + this.getLabel() + "\" expects " + this.minArgs + "-" + this.maxArgs + " argument(s), recieved " + args.length, index, false));
 			return data;
 		}
 
 		if (args.length > maxArgs)
 		{
-			// TODO New command error infrastructure
+			errors.add(new CommandError("Branch \"" + this.getLabel() + "\" expects " + this.minArgs + "-" + this.maxArgs + " argument(s), recieved " + args.length, index, false));
 			return data;
 		}
 
@@ -96,7 +103,8 @@ public class ArrayBranch<T> extends Branch
 			try {
 				data[i] = parser.parseType(args[i]);
 			} catch (Exception e) {
-				// TODO Add error for validated parser failure
+				errors.add(new CommandError("Array argument parse error, after validation", index, false));
+				Message.send(sender, "§cAn error occurred when parsing array " + argsRaw.replace('\u0000', ' ') + " of type " + this.component.getName());
 				data[i] = null;
 			}
 		}

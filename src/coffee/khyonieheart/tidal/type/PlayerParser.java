@@ -9,7 +9,7 @@ import org.bukkit.entity.Player;
 import coffee.khyonieheart.hyacinth.util.Lists;
 import coffee.khyonieheart.tidal.TypeParser;
 import coffee.khyonieheart.tidal.error.CommandError;
-import coffee.khyonieheart.tidal.structure.Branch;
+import coffee.khyonieheart.tidal.structure.branch.Branch;
 
 public class PlayerParser extends TypeParser<Player>
 {

@@ -6,7 +6,7 @@ import org.bukkit.command.CommandSender;
 
 import coffee.khyonieheart.tidal.TypeParser;
 import coffee.khyonieheart.tidal.error.CommandError;
-import coffee.khyonieheart.tidal.structure.Branch;
+import coffee.khyonieheart.tidal.structure.branch.Branch;
 
 public class FloatParser extends TypeParser<Float>
 {
@@ -29,17 +29,17 @@ public class FloatParser extends TypeParser<Float>
 
 			if (Float.isNaN(value))
 			{
-				return new CommandError("Float must be a number", argument, index, 0, argument.length());
+				return new CommandError("Float must be a number", index, false);
 			}
 
 			if (Float.isInfinite(value))
 			{
-				return new CommandError("Float must be real", argument, index, 0, argument.length());
+				return new CommandError("Float must be real", index, false);
 			}
 
 			return null;
 		} catch (NumberFormatException e) {
-			return new CommandError("Cannot parse \"" + argument + "\" as a float", argument, index, 0, argument.length());
+			return new CommandError("Cannot parse \"" + argument + "\" as a float", index, false);
 		}
 	}
 
@@ -62,7 +62,7 @@ public class FloatParser extends TypeParser<Float>
 			
 			return null;
 		} catch (NumberFormatException e) {
-			return new CommandError("Invalid float \"" + argument + "\"", argument, index, 0, argument.length());
+			return new CommandError("Invalid float \"" + argument + "\"", index, false);
 		}
 	}
 

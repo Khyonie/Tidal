@@ -9,7 +9,7 @@ import coffee.khyonieheart.hyacinth.util.marker.NotEmpty;
 import coffee.khyonieheart.hyacinth.util.marker.NotNull;
 import coffee.khyonieheart.hyacinth.util.marker.Nullable;
 import coffee.khyonieheart.tidal.error.CommandError;
-import coffee.khyonieheart.tidal.structure.Branch;
+import coffee.khyonieheart.tidal.structure.branch.Branch;
 
 @PreventAutoLoad
 @SuppressWarnings("unchecked")
@@ -104,6 +104,5 @@ public abstract class TypeParser<T>
 		public List<String> generateCompletions() {
 			return null;
 		}
-
 	}
 }

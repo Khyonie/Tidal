@@ -6,7 +6,7 @@ import org.bukkit.command.CommandSender;
 
 import coffee.khyonieheart.tidal.TypeParser;
 import coffee.khyonieheart.tidal.error.CommandError;
-import coffee.khyonieheart.tidal.structure.Branch;
+import coffee.khyonieheart.tidal.structure.branch.Branch;
 
 public class StringParser extends TypeParser<String>
 {

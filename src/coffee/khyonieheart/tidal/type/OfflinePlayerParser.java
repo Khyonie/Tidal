@@ -11,7 +11,7 @@ import coffee.khyonieheart.hyacinth.util.marker.NotNull;
 import coffee.khyonieheart.hyacinth.util.marker.Nullable;
 import coffee.khyonieheart.tidal.TypeParser;
 import coffee.khyonieheart.tidal.error.CommandError;
-import coffee.khyonieheart.tidal.structure.Branch;
+import coffee.khyonieheart.tidal.structure.branch.Branch;
 
 public class OfflinePlayerParser extends TypeParser<OfflinePlayer>
 {
@@ -34,7 +34,7 @@ public class OfflinePlayerParser extends TypeParser<OfflinePlayer>
 			return null;
 		}
 
-		return new CommandError("Player \"" + argument + "\" is not known on this server", argument, index, 0, argument.length());
+		return new CommandError("Player \"" + argument + "\" is not known on this server", index, false);
 	}
 
 	@Override
@@ -51,7 +51,7 @@ public class OfflinePlayerParser extends TypeParser<OfflinePlayer>
 			return null;
 		}
 
-		return new CommandError("Player \"" + argument + "\" does not exist does not exist.", argument, index, 0, argument.length());
+		return new CommandError("Player \"" + argument + "\" does not exist does not exist", index, false);
 	}
 
 	@Override
