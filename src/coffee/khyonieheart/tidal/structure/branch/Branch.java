@@ -3,6 +3,7 @@ package coffee.khyonieheart.tidal.structure.branch;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -108,6 +109,50 @@ public abstract class Branch
 		{
 			this.senderType = branch.getSenderType();
 		}
+	}
+
+	@Nullable
+	public BranchType getConnectedBranchType()
+	{
+		if (this.isLeaf())
+		{
+			return null;
+		}
+
+		return this.connectedBranches.values().iterator().next().getBranchType();
+	}
+
+	public boolean hasStaticBranch(
+		@NotNull String label
+	) {
+		Objects.requireNonNull(label);
+
+		return this.connectedBranches.containsKey(label);
+	}
+
+	@Nullable
+	public Branch getStaticBranch(
+		@NotNull String label
+	) {
+		Objects.requireNonNull(label);
+
+		return this.connectedBranches.get(label);
+	}
+
+	@Nullable
+	public Branch getVariableBranch()
+	{
+		return this.connectedBranches.values().iterator().next();
+	}
+
+	public List<Branch> getBranches()
+	{
+		return Collections.unmodifiableList(new ArrayList<>(this.connectedBranches.values()));
+	}
+
+	public int getBranchesCount()
+	{
+		return this.connectedBranches.size();
 	}
 
 	// Traversal aids

@@ -57,7 +57,7 @@ public class ArrayBranch<T> extends Branch
 		List<CommandError> errors,
 		CommandContext context
 	) {
-		String[] args = argsRaw.split("\n");
+		String[] args = argsRaw.split("\u0000");
 		T[] data = (T[]) Array.newInstance(component, args.length);
 		if (!TypeManager.hasParserFor(component))
 		{

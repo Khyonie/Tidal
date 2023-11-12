@@ -10,18 +10,20 @@ public class Concatenate
 {
 	@NotNull
 	public static String[] concatenate(
+		char terminatorChars,
 		char concatChar,
 		String[] input
 	)
 		throws ConcatenationException
 	{
-		return concatenate(concatChar, concatChar, input);
+		return concatenate(terminatorChars, terminatorChars, concatChar, input);
 	}
 
 	@NotNull
 	public static String[] concatenate(
 		char startChar, 
 		char endChar,
+		char concatChar,
 		String[] input
 	)
 		throws ConcatenationException
@@ -43,11 +45,11 @@ public class Concatenate
 				continue;
 			}
 
-			if (s.equals("\""))
+			if (s.length() == 1 && (s.charAt(0) == startChar || s.charAt(0) == endChar))
 			{
 				if (builder.isEmpty())
 				{
-					builder.append(" ");
+					builder.append(concatChar);
 					continue;
 				}
 
@@ -72,7 +74,7 @@ public class Concatenate
 				}
 
 				builder.append(s.substring(1));
-				builder.append(" ");
+				builder.append(concatChar);
 
 				continue;
 			}
@@ -95,7 +97,7 @@ public class Concatenate
 			if (!builder.isEmpty())
 			{
 				builder.append(s);
-				builder.append(' ');
+				builder.append(concatChar);
 				
 				continue;
 			}

@@ -19,6 +19,8 @@ import coffee.khyonieheart.hyacinth.killswitch.Feature;
 import coffee.khyonieheart.hyacinth.killswitch.FeatureIdentifier;
 import coffee.khyonieheart.hyacinth.module.ModuleOwned;
 import coffee.khyonieheart.hyacinth.module.marker.PreventAutoLoad;
+import coffee.khyonieheart.tidal.concatenation.Concatenate;
+import coffee.khyonieheart.tidal.concatenation.ConcatenationException;
 import coffee.khyonieheart.tidal.error.CommandError;
 import coffee.khyonieheart.tidal.structure.Protected;
 import coffee.khyonieheart.tidal.structure.Root;
@@ -259,6 +261,37 @@ public abstract class TidalCommand extends Command implements ModuleOwned, Featu
 			return true;
 		}
 
+		// Preprocessing
+		//-------------------------------------------------------------------------------- 
+
+		// Quoted argument processing
+		try {
+			args = Concatenate.concatenate('"', ' ', args);
+		} catch (ConcatenationException e) {
+			// FIXME Red New error infrastructure
+			CommandError error = switch (e.getType())
+			{
+				case UNEXPECTED_END -> null;
+				case UNEXPECTED_START -> null;
+				case UNTERMINATED_END -> null;
+			};
+		};
+
+		// Array processing
+		try {
+			args = Concatenate.concatenate('(', ')', '\u0000', args);
+		} catch (ConcatenationException e) {
+			// FIXME Red New error infrastructure
+			CommandError error = switch (e.getType())
+			{
+				case UNEXPECTED_END -> null;
+				case UNEXPECTED_START -> null;
+				case UNTERMINATED_END -> null;
+			};
+		};
+
+		List<CommandError> errors = new ArrayList<>();
+
 		// Local executor
 		//-------------------------------------------------------------------------------- 
 		if (this.localCommandBranchExecutor != null)
@@ -266,7 +299,13 @@ public abstract class TidalCommand extends Command implements ModuleOwned, Featu
 			Branch branch = this.localCommandBranchExecutor.get(0);
 			Object[] methodParameters = new Object[this.localCommandBranchExecutor.size()];
 
+			traverse(branch, args, 0, sender, commandLabel, CommandContext.EXECUTION, methodParameters, errors);
 
+			if (!errors.isEmpty())
+			{
+				// FIXME Red Display errors
+				return true;
+			}
 		}
 
 		return true;
@@ -277,6 +316,8 @@ public abstract class TidalCommand extends Command implements ModuleOwned, Featu
 		String[] args,
 		int startIndex,
 		CommandSender sender,
+		String label,
+		CommandContext context,
 		Object[] methodParameters,
 		List<CommandError> errors
 	) {
@@ -285,12 +326,51 @@ public abstract class TidalCommand extends Command implements ModuleOwned, Featu
 
 		int index = startIndex;
 		int parameterIndex = 1;
+		String arg;
 		while (!branch.isLeaf())
 		{
-			switch (branch.getBranchType())
+			if (args.length >= index)
+			{
+				return;
+			}
+
+			arg = args[index];
+			switch (branch.getConnectedBranchType())
 			{
 				case STATIC -> {
+					methodParameters[parameterIndex] = arg;
+					index++;
+					parameterIndex++;
+
+					if (!branch.hasStaticBranch(arg))
+					{
+						// FIXME Red Add unknown static branch error
+						if (branch.getBranchesCount() == 1)
+						{
+							branch = branch.getVariableBranch(); // Skip ahead
+							continue;
+						}
+
+						return;
+					}
+
+					branch = branch.getStaticBranch(arg);
+				}
+				case TYPED -> {
+					branch = branch.getVariableBranch();
+					index++;
+					parameterIndex++;
+
+					methodParameters[parameterIndex] = ((TypedBranch<?>) branch).parse(sender, label, args, index, arg, errors, context);
+				}
+				case ARRAY -> {
+					branch = branch.getVariableBranch();
+					index++;
+					parameterIndex++;
+
+					ArrayBranch<?> arrBranch = (ArrayBranch<?>) branch;
 					
+					methodParameters[parameterIndex] = arrBranch.parse(sender, label, args, index, arg, errors, context);
 				}
 			}
 		}
