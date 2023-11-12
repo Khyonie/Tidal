@@ -1,0 +1,3 @@
+class_shaders:
+  NORMAL:
+    - coffee.khyonieheart.tidal.TypeManager

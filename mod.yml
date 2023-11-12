@@ -1,0 +1,6 @@
+name: Tidal
+package: coffee.khyonieheart.tidal
+description: Floating implementation of Tidal parser
+entry: coffee.khyonieheart.tidal.Tidal
+version: 1.0.0
+author: khyonie

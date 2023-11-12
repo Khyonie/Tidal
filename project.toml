@@ -1,0 +1,11 @@
+[project]
+name = "Tidal"
+libraries = ["lib/"]
+
+[task]
+
+[task.main]
+source = "src/"
+output = ["~/Servers/Minecraft/1.20.1/Hyacinth/modules/Tidal.jar"]
+input = ["mod.yml", "loader.yml"]
+arguments = "-parameters"
