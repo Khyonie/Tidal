@@ -33,6 +33,11 @@ public class CommandError
 		String commandLabel,
 		String[] args
 	) {
+		// Sanitize args
+		for (int i = 0; i < args.length; i++)
+		{
+			args[i] = args[i].replace('\u0000', ' ');
+		}
 		Message.send(sender, "§cError " + errorNumber + ": " + message + " at position " + index);
 		if (appendDots)
 		{
@@ -41,7 +46,7 @@ public class CommandError
 		}
 
 		args[index] = "§c§n" + args[index] + "§7";
-		Message.send(sender, "§c↳ §7/" + commandLabel + " " + Arrays.toString(args, " "));
+		Message.send(sender, "§c§l⤷ §7/" + commandLabel + " " + Arrays.toString(args, " "));
 
 		if (this.resolution != null)
 		{

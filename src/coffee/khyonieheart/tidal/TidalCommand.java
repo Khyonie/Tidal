@@ -14,12 +14,14 @@ import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
 import org.bukkit.command.TabCompleter;
 
+import coffee.khyonieheart.hyacinth.Gradient;
 import coffee.khyonieheart.hyacinth.Logger;
 import coffee.khyonieheart.hyacinth.Message;
 import coffee.khyonieheart.hyacinth.killswitch.Feature;
 import coffee.khyonieheart.hyacinth.killswitch.FeatureIdentifier;
 import coffee.khyonieheart.hyacinth.module.ModuleOwned;
 import coffee.khyonieheart.hyacinth.module.marker.PreventAutoLoad;
+import coffee.khyonieheart.hyacinth.util.Arrays;
 import coffee.khyonieheart.hyacinth.util.Collections;
 import coffee.khyonieheart.tidal.concatenation.Concatenate;
 import coffee.khyonieheart.tidal.concatenation.ConcatenationException;
@@ -282,9 +284,10 @@ public abstract class TidalCommand extends Command implements ModuleOwned, Featu
 			{
 				case UNEXPECTED_END -> new CommandError("Unexpected quoted argument end", e.getIndex(), false);
 				case UNEXPECTED_START -> new CommandError("Unexpected quoted argument start", e.getIndex(), false);
-				case UNTERMINATED_END -> new CommandError("Unterminated quoted argument", e.getIndex(), false);
+				case UNTERMINATED_END -> new CommandError("Unterminated quoted argument", e.getIndex() + 1, true);
 			};
 
+			sender.spigot().sendMessage(new Gradient("#FF5555", "#FFFFFF").createComponents("Could not execute command /" + commandLabel + " " + Arrays.toString(args, " ", a -> a.replace('\u0000', ' '))));
 			error.display(1, sender, commandLabel, args);
 			return true;
 		};
@@ -297,9 +300,10 @@ public abstract class TidalCommand extends Command implements ModuleOwned, Featu
 			{
 				case UNEXPECTED_END -> new CommandError("Unexpected array argument end", e.getIndex(), false);
 				case UNEXPECTED_START -> new CommandError("Unexpected array argument start", e.getIndex(), false);
-				case UNTERMINATED_END -> new CommandError("Unterminated array argument", e.getIndex(), false);
+				case UNTERMINATED_END -> new CommandError("Unterminated array argument", e.getIndex() + 1, true);
 			};
 
+			sender.spigot().sendMessage(new Gradient("#FF5555", "#FFFFFF").createComponents("Could not execute command /" + commandLabel + " " + Arrays.toString(args, " ", a -> a.replace('\u0000', ' '))));
 			error.display(1, sender, commandLabel, args);
 			return true;
 		};
@@ -317,6 +321,7 @@ public abstract class TidalCommand extends Command implements ModuleOwned, Featu
 
 			if (!errors.isEmpty())
 			{
+				sender.spigot().sendMessage(new Gradient("#FF5555", "#FFFFFF").createComponents("Could not execute command /" + commandLabel + " " + Arrays.toString(args, " ", a -> a.replace('\u0000', ' '))));
 				for (int i = 0; i < errors.size(); i++)
 				{
 					errors.get(i).display(i + 1, sender, commandLabel, args);
@@ -328,6 +333,7 @@ public abstract class TidalCommand extends Command implements ModuleOwned, Featu
 			{
 				if (!branch.isLeaf())
 				{
+					sender.spigot().sendMessage(new Gradient("#FF5555", "#FFFFFF").createComponents("Could not execute command /" + commandLabel + " " + Arrays.toString(args, " ", a -> a.replace('\u0000', ' '))));
 					errors.add(new CommandError("Incomplete command", args.length, true));
 					for (int i = 0; i < errors.size(); i++)
 					{
@@ -337,6 +343,7 @@ public abstract class TidalCommand extends Command implements ModuleOwned, Featu
 					return true;
 				}
 
+				sender.spigot().sendMessage(new Gradient("#FF5555", "#FFFFFF").createComponents("Could not execute command /" + commandLabel + " " + Arrays.toString(args, " ", a -> a.replace('\u0000', ' '))));
 				errors.add(new CommandError("§d§oUnterminated command, this is a Tidal issue§c", args.length - 1, false));
 				for (int i = 0; i < errors.size(); i++)
 				{
@@ -361,6 +368,7 @@ public abstract class TidalCommand extends Command implements ModuleOwned, Featu
 		//-------------------------------------------------------------------------------- 
 		if (!this.roots.containsKey(args[0]))
 		{
+			sender.spigot().sendMessage(new Gradient("#FF5555", "#FFFFFF").createComponents("Could not execute command /" + commandLabel + " " + Arrays.toString(args, " ", a -> a.replace('\u0000', ' '))));
 			new CommandError("Unknown subcommand \"" + args[0] + "\"", 0, false).display(1, sender, commandLabel, args);
 			return true;
 		}
@@ -369,6 +377,7 @@ public abstract class TidalCommand extends Command implements ModuleOwned, Featu
 
 		if (!branch.isAuthorized(sender))
 		{
+			sender.spigot().sendMessage(new Gradient("#FF5555", "#FFFFFF").createComponents("Could not execute command /" + commandLabel + " " + Arrays.toString(args, " ", a -> a.replace('\u0000', ' '))));
 			Logger.debug("Authorization failed");
 			new CommandError("Unknown subcommand \"" + args[0] + "\"", 0, false).display(1, sender, commandLabel, args);
 			return true;
@@ -382,6 +391,7 @@ public abstract class TidalCommand extends Command implements ModuleOwned, Featu
 		{
 			if (!branch.isLeaf())
 			{
+				sender.spigot().sendMessage(new Gradient("#FF5555", "#FFFFFF").createComponents("Could not execute command /" + commandLabel + " " + Arrays.toString(args, " ", a -> a.replace('\u0000', ' '))));
 				errors.add(new CommandError("Incomplete command", args.length, true));
 				for (int i = 0; i < errors.size(); i++)
 				{
@@ -391,6 +401,7 @@ public abstract class TidalCommand extends Command implements ModuleOwned, Featu
 				return true;
 			}
 
+			sender.spigot().sendMessage(new Gradient("#FF5555", "#FFFFFF").createComponents("Could not execute command /" + commandLabel + " " + Arrays.toString(args, " ", a -> a.replace('\u0000', ' '))));
 			errors.add(new CommandError("§d§oUnterminated command, this is a Tidal issue§c", args.length - 1, false));
 			for (int i = 0; i < errors.size(); i++)
 			{
