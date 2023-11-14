@@ -62,7 +62,10 @@ public class ArrayBranch<T> extends Branch
 		T[] data = (T[]) Array.newInstance(component, args.length);
 		if (!TypeManager.hasParserFor(component))
 		{
-			errors.add(new CommandError("§dNo parser exists for type " + this.getComponentType().getName() + "§c", index, false));
+			CommandError error = new CommandError("Unregistered type " + this.component.getName(), index);
+			error.setResolution("Create a type parser missing type " + this.component.getName());
+			errors.add(error);
+
 			return data;
 		}
 
@@ -70,21 +73,22 @@ public class ArrayBranch<T> extends Branch
 		{
 			if (maxArgs == Integer.MAX_VALUE)
 			{
-				errors.add(new CommandError("Branch \"" + this.getLabel() + " expect at least " + this.minArgs + " argument(s), received " + args.length, index, false));
+				errors.add(new CommandError("Branch \"" + this.getLabel() + " expect at least " + this.minArgs + " argument(s), received " + args.length, index));
 				return data;
 			}
 
-			errors.add(new CommandError("Branch \"" + this.getLabel() + "\" expects " + this.minArgs + "-" + this.maxArgs + " argument(s), recieved " + args.length, index, false));
+			errors.add(new CommandError("Branch \"" + this.getLabel() + "\" expects " + this.minArgs + "-" + this.maxArgs + " argument(s), recieved " + args.length, index));
 			return data;
 		}
 
 		if (args.length > maxArgs)
 		{
-			errors.add(new CommandError("Branch \"" + this.getLabel() + "\" expects " + this.minArgs + "-" + this.maxArgs + " argument(s), recieved " + args.length, index, false));
+			errors.add(new CommandError("Branch \"" + this.getLabel() + "\" expects " + this.minArgs + "-" + this.maxArgs + " argument(s), recieved " + args.length, index));
 			return data;
 		}
 
 		TypeParser<T> parser = (TypeParser<T>) TypeManager.getParser(component);
+		int startPosition = 0;
 		for (int i = 0; i < args.length; i++)
 		{
 			CommandError error = switch (context)
@@ -95,18 +99,22 @@ public class ArrayBranch<T> extends Branch
 
 			if (error != null)
 			{
+				error.setBounds(startPosition, startPosition + args[i].length())
+					.appendMessage(" (in array position " + (i + 1) + ")");
 				errors.add(error);
 				data[i] = null;
+				startPosition += args[i].length() + 1;
 				continue;
 			}
 
 			try {
 				data[i] = parser.parseType(args[i]);
 			} catch (Exception e) {
-				errors.add(new CommandError("Array argument parse error, after validation", index, false));
+				errors.add(new CommandError("Array argument parse error, after validation", index));
 				Message.send(sender, "§cAn error occurred when parsing array " + argsRaw.replace('\u0000', ' ') + " of type " + this.component.getName());
 				data[i] = null;
 			}
+			startPosition += args[i].length() + 1;
 		}
 
 		return data;

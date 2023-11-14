@@ -14,17 +14,49 @@ public class CommandError
 {
 	private String message;
 	private int index;
-	private boolean appendDots;
+	private String appendText;
+	private AppendLocation appendLocation;
 	private String resolution = null;
+	private int errorStart = 0;
+	private int errorEnd;
 
 	public CommandError(
 		@NotNull String message,
-		@Range(minimum = 0, maximum = Integer.MAX_VALUE) int index,
-		boolean appendDots
+		@Range(minimum = 0, maximum = Integer.MAX_VALUE) int index
 	) {
 		this.message = Objects.requireNonNull(message);
 		this.index = RuntimeConditions.requirePositive(index);
-		this.appendDots = appendDots;
+		this.errorEnd = message.length();
+	}
+
+	public CommandError appendAt(
+		@NotNull AppendLocation appendLocation,
+		@NotNull String message
+	) {
+		this.appendLocation = Objects.requireNonNull(appendLocation);
+		this.appendText = Objects.requireNonNull(message);
+
+		return this;
+	}
+
+	public CommandError appendMessage(
+		@NotNull String message
+	) {
+		this.message += Objects.requireNonNull(message);
+		return this;
+	}
+
+	public CommandError setBounds(
+		int start, 
+		int end
+	) {
+		if (end > this.message.length())
+		{
+			throw new IllegalArgumentException("End bound cannot be greater than message length ");
+		}
+		this.errorStart = RuntimeConditions.requirePositive(start);
+		this.errorEnd = end;
+		return this;
 	}
 
 	public void display(
@@ -33,19 +65,51 @@ public class CommandError
 		String commandLabel,
 		String[] args
 	) {
-		// Sanitize args
+		// Sanitize args for null codepoint, used in array processing
+		args = args.clone();
 		for (int i = 0; i < args.length; i++)
 		{
 			args[i] = args[i].replace('\u0000', ' ');
 		}
 		Message.send(sender, "§cError " + errorNumber + ": " + message + " at position " + index);
-		if (appendDots)
+
+		// Apply appendage
+		if (appendLocation != null)
 		{
-			args = java.util.Arrays.copyOf(args, args.length + 1);
-			args[args.length - 1] = "...";
+			String[] newArgs = new String[args.length + 1];
+			switch (this.appendLocation)
+			{
+				case END -> {
+					for (int i = 0; i < args.length; i++)
+					{
+						newArgs[i] = args[i];
+					}
+
+					newArgs[args.length] = this.appendText;
+					args = newArgs;
+				}
+				case ARG -> {
+					for (int i = 0; i < args.length; i++)
+					{
+						if (i == index)
+						{
+							newArgs[i] = appendText;
+							continue;
+						}
+
+						newArgs[i] = args[i];
+					}
+
+					args = newArgs;
+				}
+			}
 		}
 
-		args[index] = "§c§n" + args[index] + "§7";
+		// Display
+		args[index] = "§e" + new StringBuilder(args[index])
+			.replace(this.errorStart, this.errorEnd, "§c§n" + args[index].substring(this.errorStart, this.errorEnd) + "§e")
+			.toString() + "§7"; 
+
 		Message.send(sender, "§c§l⤷ §7/" + commandLabel + " " + Arrays.toString(args, " "));
 
 		if (this.resolution != null)
@@ -58,5 +122,12 @@ public class CommandError
 		@NotNull String resolution
 	) {
 		this.resolution = Objects.requireNonNull(resolution);
+	}
+
+	public static enum AppendLocation
+	{
+		END,
+		ARG,
+		;
 	}
 }

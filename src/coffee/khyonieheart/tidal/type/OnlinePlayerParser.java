@@ -32,7 +32,7 @@ public class OnlinePlayerParser extends TypeParser<Player>
 			return null;
 		}
 
-		CommandError error = new CommandError("No player named \"" + argument + "\" is online", index, false);
+		CommandError error = new CommandError("No player named \"" + argument + "\" is online", index);
 		
 		return error;
 	}
@@ -51,7 +51,7 @@ public class OnlinePlayerParser extends TypeParser<Player>
 			return null;
 		}
 
-		CommandError error = new CommandError("No player named \"" + argument + "\" is online", index, false);
+		CommandError error = new CommandError("No player named \"" + argument + "\" is online", index);
 		
 		return error;
 	}

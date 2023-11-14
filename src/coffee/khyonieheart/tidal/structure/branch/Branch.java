@@ -12,7 +12,6 @@ import java.util.Objects;
 
 import org.bukkit.command.CommandSender;
 
-import coffee.khyonieheart.hyacinth.Logger;
 import coffee.khyonieheart.hyacinth.util.marker.NotNull;
 import coffee.khyonieheart.hyacinth.util.marker.Nullable;
 import coffee.khyonieheart.tidal.structure.BranchType;
@@ -25,7 +24,7 @@ public abstract class Branch
 	private Class<? extends CommandSender> senderType;
 	private String[] permissions;
 	private Method executor;
-	private Map<Class<? extends Annotation>, Annotation> annotations;
+	private Map<Class<? extends Annotation>, Annotation> annotations = new HashMap<>();
 
 	public Branch(
 		@Nullable String label, 
@@ -49,7 +48,6 @@ public abstract class Branch
 
 		for (String permission : permissions)
 		{
-			Logger.debug("Testing permission \"" + permission + "\":" + sender.hasPermission(permission));
 			if (!sender.hasPermission(permission))
 			{
 				return false;

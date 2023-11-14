@@ -43,7 +43,10 @@ public class TypedBranch<T> extends Branch
 	) {
 		if (!TypeManager.hasParserFor(this.type))
 		{
-			// TODO New command infrastructure
+			CommandError error = new CommandError("Unregistered type " + this.type.getName(), index);
+			error.setResolution("Create a type parser missing type " + this.type.getName());
+			errors.add(error);
+
 			return null;
 		}
 
