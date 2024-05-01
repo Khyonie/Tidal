@@ -38,6 +38,16 @@ public class TypeManager implements ClassShader<TypeParser<?>>
 		return object;
 	}
 
+	public static void register(
+		Class<?> type,
+		TypeParser<?> parser
+	) {
+		Objects.requireNonNull(type);
+		Objects.requireNonNull(parser);
+
+		registeredTypes.put(type, parser);
+	}
+
 	@Nullable
 	public static TypeParser<?> getParser(
 		@NotNull Class<?> type

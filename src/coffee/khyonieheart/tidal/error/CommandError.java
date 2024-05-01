@@ -22,11 +22,12 @@ public class CommandError
 
 	public CommandError(
 		@NotNull String message,
+		@NotNull String offendingArgument,
 		@Range(minimum = 0, maximum = Integer.MAX_VALUE) int index
 	) {
 		this.message = Objects.requireNonNull(message);
 		this.index = RuntimeConditions.requirePositive(index);
-		this.errorEnd = message.length();
+		this.errorEnd = offendingArgument.length();
 	}
 
 	public CommandError appendAt(
@@ -50,10 +51,6 @@ public class CommandError
 		int start, 
 		int end
 	) {
-		if (end > this.message.length())
-		{
-			throw new IllegalArgumentException("End bound cannot be greater than message length ");
-		}
 		this.errorStart = RuntimeConditions.requirePositive(start);
 		this.errorEnd = end;
 		return this;
@@ -116,6 +113,11 @@ public class CommandError
 		{
 			Message.send(sender, "§9 §9 Possible fix: " + this.resolution);
 		}
+	}
+
+	public String displaySimple()
+	{
+		return this.message + " @ position " + (this.index + 1);
 	}
 
 	public void setResolution(

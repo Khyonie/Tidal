@@ -34,7 +34,7 @@ public class OfflinePlayerParser extends TypeParser<OfflinePlayer>
 			return null;
 		}
 
-		return new CommandError("Player \"" + argument + "\" is not known on this server", index);
+		return new CommandError("Player \"" + argument + "\" is not known on this server", argument, index);
 	}
 
 	@Override
@@ -51,7 +51,7 @@ public class OfflinePlayerParser extends TypeParser<OfflinePlayer>
 			return null;
 		}
 
-		return new CommandError("Player \"" + argument + "\" does not exist does not exist", index);
+		return new CommandError("Player \"" + argument + "\" does not exist does not exist", argument, index);
 	}
 
 	@Override

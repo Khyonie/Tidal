@@ -33,13 +33,13 @@ public class ConstantIntegerParser extends TypeParser<Integer>
 				Range range = branch.getAnnotation(Range.class);
 				if (val < range.minimum() || val > range.maximum())
 				{
-					return new CommandError("Integer out of range, valid range: " + range.minimum() + "-" + range.maximum(), index);
+					return new CommandError("Integer out of range, valid range: " + range.minimum() + "-" + range.maximum(), argument, index);
 				}
 			}
 			
 			return null;
 		} catch (NumberFormatException intE) {
-			CommandError error = new CommandError("Cannot parse \"" + argument + "\" as an integer", index);
+			CommandError error = new CommandError("Cannot parse \"" + argument + "\" as an integer", argument, index);
 
 			try {
 				float val = Float.parseFloat(argument);
@@ -69,13 +69,13 @@ public class ConstantIntegerParser extends TypeParser<Integer>
 
 				if (val < range.minimum() || val > range.maximum())
 				{
-					return new CommandError("Argument out of range: " + range.minimum() + "-" + range.maximum(), index);
+					return new CommandError("Argument out of range: " + range.minimum() + "-" + range.maximum(), argument, index);
 				}
 			}
 			
 			return null;
 		} catch (NumberFormatException intE) {
-			return new CommandError("Invalid integer \"" + argument + "\"", index);
+			return new CommandError("Invalid integer \"" + argument + "\"", argument, index);
 		}
 	}
 

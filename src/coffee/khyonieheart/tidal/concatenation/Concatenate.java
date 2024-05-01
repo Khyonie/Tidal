@@ -12,11 +12,13 @@ public class Concatenate
 	public static String[] concatenate(
 		char terminatorChars,
 		char concatChar,
+		boolean autoTerminate,
+		boolean removeBlank,
 		String[] input
 	)
 		throws ConcatenationException
 	{
-		return concatenate(terminatorChars, terminatorChars, concatChar, input);
+		return concatenate(terminatorChars, terminatorChars, concatChar, autoTerminate, removeBlank, input);
 	}
 
 	@NotNull
@@ -24,6 +26,8 @@ public class Concatenate
 		char startChar, 
 		char endChar,
 		char concatChar,
+		boolean autoTerminate,
+		boolean removeBlank,
 		String[] input
 	)
 		throws ConcatenationException
@@ -31,7 +35,8 @@ public class Concatenate
 		List<String> data = new ArrayList<>();
 		StringBuilder builder = new StringBuilder();
 		
-		for (int i = 0; i < input.length; i++)
+		int i = 0;
+		for ( ; i < input.length; i++)
 		{
 			String s = input[i];
 
@@ -107,10 +112,27 @@ public class Concatenate
 
 		if (!builder.isEmpty())
 		{
-			throw new ConcatenationException(FailureType.UNTERMINATED_END, input.length - 1);
+			if (!autoTerminate)
+			{
+				throw new ConcatenationException(FailureType.UNTERMINATED_END, input.length - 1);
+			}
+
+			for (; i < input.length; i++)
+			{
+				builder.append(input[i]);
+				if (i < (input.length - 1))
+				{
+					builder.append(concatChar);
+				}
+
+			}
+			data.add(builder.toString());
 		}
 
-		//data.removeIf(s -> s.equals(""));
+		if (removeBlank)
+		{
+			data.removeIf(s -> s.length() == 0);
+		}
 
 		return data.toArray(new String[data.size()]);
 	}

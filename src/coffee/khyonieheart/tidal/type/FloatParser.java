@@ -29,17 +29,17 @@ public class FloatParser extends TypeParser<Float>
 
 			if (Float.isNaN(value))
 			{
-				return new CommandError("Float must be a number", index);
+				return new CommandError("Float must be a number", argument, index);
 			}
 
 			if (Float.isInfinite(value))
 			{
-				return new CommandError("Float must be real", index);
+				return new CommandError("Float must be real", argument, index);
 			}
 
 			return null;
 		} catch (NumberFormatException e) {
-			return new CommandError("Cannot parse \"" + argument + "\" as a float", index);
+			return new CommandError("Cannot parse \"" + argument + "\" as a float", argument, index);
 		}
 	}
 
@@ -62,7 +62,7 @@ public class FloatParser extends TypeParser<Float>
 			
 			return null;
 		} catch (NumberFormatException e) {
-			return new CommandError("Invalid float \"" + argument + "\"", index);
+			return new CommandError("Invalid float \"" + argument + "\"", argument, index);
 		}
 	}
 

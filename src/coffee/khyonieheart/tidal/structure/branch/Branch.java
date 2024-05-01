@@ -12,6 +12,8 @@ import java.util.Objects;
 
 import org.bukkit.command.CommandSender;
 
+import coffee.khyonieheart.hyacinth.Logger;
+import coffee.khyonieheart.hyacinth.util.Lists;
 import coffee.khyonieheart.hyacinth.util.marker.NotNull;
 import coffee.khyonieheart.hyacinth.util.marker.Nullable;
 import coffee.khyonieheart.tidal.structure.BranchType;
@@ -25,6 +27,8 @@ public abstract class Branch
 	private String[] permissions;
 	private Method executor;
 	private Map<Class<? extends Annotation>, Annotation> annotations = new HashMap<>();
+	private Branch host;
+	private int depth = 0;
 
 	public Branch(
 		@Nullable String label, 
@@ -55,6 +59,18 @@ public abstract class Branch
 		}
 
 		return true;
+	}
+
+	void setHost(
+		Branch branch
+	) {
+		this.host = branch;
+	}
+
+	@Nullable
+	public Branch getHost()
+	{
+		return this.host;
 	}
 
 	public void addPermission(
@@ -100,6 +116,12 @@ public abstract class Branch
 	) {
 		Objects.requireNonNull(branch);
 		connectedBranches.put(branch.getLabel(), branch);
+		branch.setHost(this);
+	}
+
+	public Map<String, Branch> debugTest()
+	{
+		return this.connectedBranches;
 	}
 
 	public void setExecutor(
@@ -120,7 +142,7 @@ public abstract class Branch
 		throws IllegalArgumentException
 	{
 		// Make sure this class is either equal or a subclass of the given branch
-		if (branch.getClass().isAssignableFrom(this.getClass()))
+		if (!branch.getClass().isAssignableFrom(this.getClass()))
 		{
 			throw new IllegalArgumentException("Cannot merge incompatible branches \"" + this.getLabel() + " (typed " + this.getClass().getName() + ") and " + branch.getLabel() + " (typed " + branch.getClass().getName() + ")");
 		}
@@ -148,6 +170,102 @@ public abstract class Branch
 		if (!branch.getSenderType().isAssignableFrom(this.getSenderType()))
 		{
 			this.senderType = branch.getSenderType();
+		}
+
+		for (String s : branch.connectedBranches.keySet())
+		{
+			if (!this.connectedBranches.containsKey(s))
+			{
+				this.connectedBranches.put(s, branch.connectedBranches.get(s));
+				continue;
+			}
+
+			if (!this.connectedBranches.get(s).equals(branch.connectedBranches.get(s)))
+			{
+				Logger.log("§eIncompatible branch " + s + ". Cannot merge.");
+				continue;
+			}
+
+			this.connectedBranches.get(s).merge(branch.connectedBranches.get(s));
+		}
+
+		// Host
+		if (this.host == null && branch.host != null)
+		{
+			this.host = branch.host;
+		}
+
+		if (branch.host == null && this.host != null)
+		{
+			branch.host = this.host;
+		}
+	}
+
+	public void probeDepth()
+	{
+		this.depth = probeDepth(this, this, 1);
+	}
+
+	private int probeDepth(Branch current, Branch root, int depth)
+	{
+		if (current.isLeaf())
+		{
+			return depth;
+		}
+
+		int newDepth = depth;
+		for (Branch b : current.getBranches())
+		{
+			newDepth = Math.max(newDepth, b.probeDepth(b, root, depth + 1));
+		}
+
+		return newDepth;
+	}
+
+	public int getDepth()
+	{
+		return this.depth;
+	}
+
+	public void mergeAll(
+		@NotNull List<Branch> branches
+	) {
+		Objects.requireNonNull(branches);
+		Logger.debug("§e# Performing merge-all on root " + this.getLabel() + " with newcomer branches: [ " + Lists.toString(branches, ", ", b -> b.getLabel()) + " ]");
+
+		Branch current = this;
+		Branch newcomer;
+
+		for (int i = 0; i < branches.size(); i++)
+		{
+			newcomer = branches.get(i);
+			Logger.debug("Handling merge at " + i + ": current = " + current.getLabel() + ", newcomer = " + newcomer.getLabel());
+			if (current.equals(newcomer))
+			{
+				Logger.debug("The above branches are equal, merging...");
+				current.merge(newcomer);
+
+				if (current.getBranchesCount() == 1)
+				{
+					Logger.debug("Only one branch connected to current branch, moving into it...");
+					current = current.getVariableBranch();
+					continue;
+				}
+
+				if ((i + 1) >= branches.size())
+				{
+					break;
+				}
+
+				if (current.equalsAtLeastOneConnected(branches.get(i + 1)))
+				{
+					current = current.matchEqualConnected(branches.get(i + 1));
+					continue;
+				}
+			}
+
+			current.getHost().attach(newcomer);
+			newcomer.setHost(current.getHost());
 		}
 	}
 
@@ -203,6 +321,21 @@ public abstract class Branch
 		return this.connectedBranches.size() == 0;
 	}
 
+	@Nullable
+	public Branch matchEqualConnected(
+		@NotNull Branch branch
+	) {
+		for (Branch b : connectedBranches.values())
+		{
+			if (b.equals(branch))
+			{
+				return b;
+			}
+		}
+
+		return null;
+	}
+
 	// Getters
 	//-------------------------------------------------------------------------------- 
 
@@ -243,9 +376,15 @@ public abstract class Branch
 
 		if (object instanceof Branch branch)
 		{
-			return branch.getLabel().equals(this.label) && Arrays.equals(branch.getPermissions(), this.permissions) && branch.getSenderType().equals(this.senderType) && (branch.getExecutor() == this.executor);
+			return branch.getLabel().equals(this.label) && branch.getSenderType().equals(this.senderType);
 		}
 
 		return false;
+	}
+
+	public boolean equalsAtLeastOneConnected(
+		Branch branch
+	) {
+		return matchEqualConnected(branch) != null;
 	}
 }
