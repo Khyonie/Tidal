@@ -1,0 +1,24 @@
+[project]
+name = "Tidal"
+description = "Advanced Minecraft command parser."
+version = "2.1.0"
+natures = [ "eclipse", "maven" ]
+
+[dependencies]
+spigot-api-shaded = { type = "loadArchive", path = "lib/spigot-api-1.21.11-R0.1-20251222.214922-7-shaded.jar" }
+anenome = { type = "fetchFromGithub", username = "Khyonie", repository = "Anenome", tag = "v0.4.1" }
+
+[configuration.main]
+sources = [ "src/api/", "src/plugin/" ]
+dependencies = [ "spigot-api-shaded", "anenome" ]
+targets = [ "targets/{configuration}/{project_name}-{configuration}-{version}.jar" ]
+includes = [ "plugin.yml", "COPYING", "COPYING.LESSER" ]
+java_version = 21
+
+[configuration.main.compiler_flags]
+release_target = 21
+store_parameter_names = true
+
+[configuration.testing]
+inherit = "main"
+sources = [ "src/testing/" ]
