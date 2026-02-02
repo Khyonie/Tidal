@@ -13,4 +13,5 @@ public @interface Root
 	String permission() default "NOT_APPLICABLE";
 	boolean isLocalExecutor() default false;
 	boolean isRootExecutor() default false;
+	String description() default "NO_DESCRIPTION";
 }

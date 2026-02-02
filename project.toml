@@ -1,7 +1,7 @@
 [project]
 name = "Tidal"
 description = "Advanced Minecraft command parser."
-version = "2.1.0"
+version = "2.2.0"
 natures = [ "eclipse", "maven" ]
 
 [dependencies]
@@ -11,6 +11,7 @@ anenome = { type = "fetchFromGithub", username = "Khyonie", repository = "Anenom
 [configuration.main]
 sources = [ "src/api/", "src/plugin/" ]
 dependencies = [ "spigot-api-shaded", "anenome" ]
+shaded = [ "anenome" ]
 targets = [ "targets/{configuration}/{project_name}-{configuration}-{version}.jar" ]
 includes = [ "plugin.yml", "COPYING", "COPYING.LESSER" ]
 java_version = 21
@@ -22,3 +23,4 @@ store_parameter_names = true
 [configuration.testing]
 inherit = "main"
 sources = [ "src/testing/" ]
+shaded = [ "anenome" ]
