@@ -15,7 +15,7 @@ public class TidalPlugin extends JavaPlugin
 	@Override
 	public void onEnable()
 	{
-		new SyntaxCommand().register();
+		initDefaultCommands();
 	}
 
 	protected static void addTidalCommand(
@@ -41,5 +41,11 @@ public class TidalPlugin extends JavaPlugin
 		String name
 	) {
 		return registeredTidalCommands.get(name);
+	}
+
+	public static void initDefaultCommands()
+	{
+		new SyntaxCommand().register();
+		new TidalTestCommand().register();
 	}
 }
