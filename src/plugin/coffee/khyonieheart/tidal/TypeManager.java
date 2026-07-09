@@ -15,6 +15,7 @@ import coffee.khyonieheart.tidal.type.FloatParser;
 import coffee.khyonieheart.tidal.type.IntegerParser;
 import coffee.khyonieheart.tidal.type.OfflinePlayerParser;
 import coffee.khyonieheart.tidal.type.OnlinePlayerParser;
+import coffee.khyonieheart.tidal.type.TidalCommandParser;
 import coffee.khyonieheart.tidal.type.StringParser;
 import coffee.khyonieheart.tidal.type.TypeParser;
 
@@ -30,6 +31,7 @@ public class TypeManager
 		registeredTypes.put(OfflinePlayer.class, new OfflinePlayerParser());
 		registeredTypes.put(Player.class, new OnlinePlayerParser());
 		registeredTypes.put(String.class, new StringParser());
+		registeredTypes.put(TidalCommand.class, new TidalCommandParser());
 	}
 
 	/** This type should not be instantiated */

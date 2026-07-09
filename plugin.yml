@@ -1,6 +1,6 @@
 main: coffee.khyonieheart.tidal.TidalPlugin
 name: Tidal
-version: 1.0.0
+version: 2.2.0
 description: Advanced Minecraft command parser.
 api-version: 1.17
 author: Khyonie

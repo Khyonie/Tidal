@@ -143,6 +143,9 @@ public abstract class TidalCommand extends Command
 			roots.get(s).get(0).probeDepth();
 			display(roots.get(s).get(0), 0);
 		}
+
+		// Register command with Tidal for syntax descriptions
+		TidalPlugin.addTidalCommand(this);
 	}
 
 	private void display(Branch branch, int depth)
