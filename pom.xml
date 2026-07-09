@@ -6,8 +6,24 @@
 	<properties>
 		<maven.compiler.release>21</maven.compiler.release>
 	</properties>
+	<repositories>
+		<repository>
+			<id>wisteria-repository-1</id>
+			<url>https://hub.spigotmc.org/nexus/repository/snapshots/</url>
+			<releases>
+				<enabled>true</enabled>
+			</releases>
+			<snapshots>
+				<enabled>true</enabled>
+			</snapshots>
+		</repository>
+	</repositories>
 	<dependencies>
 		<dependency>
+			<groupId>org.spigotmc</groupId>
+			<artifactId>spigot-api</artifactId>
+			<version>26.2-R0.1-SNAPSHOT</version>
+			<classifier>shaded</classifier>
 		</dependency>
 	</dependencies>
 </project>

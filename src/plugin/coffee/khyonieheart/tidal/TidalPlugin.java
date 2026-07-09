@@ -46,6 +46,5 @@ public class TidalPlugin extends JavaPlugin
 	public static void initDefaultCommands()
 	{
 		new SyntaxCommand().register();
-		new TidalTestCommand().register();
 	}
 }
